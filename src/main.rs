@@ -1,5 +1,6 @@
-use chain_utils::Transaction;
-
+use bls_signatures;
+use chain_utils::{Key, Transaction};
+use rand::{thread_rng, CryptoRng, RngCore};
 mod chain_utils;
 fn main() {
     let mut chain = chain_utils::Blockchain::new();
@@ -25,4 +26,7 @@ fn main() {
     println!("{:?}", chain.pending_transactions);
     println!("{:?}", chain.blocks);
     println!("{:?}", chain.accounts);
+
+    let key = Key::new();
+    println!("{:?} {:?}", key.private, key.public);
 }

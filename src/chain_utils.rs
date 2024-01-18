@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 
+use bls_signatures::{PrivateKey, PublicKey};
+use rand::thread_rng;
+
 #[derive(Debug)]
 pub struct Blockchain {
     pub blocks: Vec<Block>,
@@ -15,6 +18,11 @@ pub struct Transaction {
     pub from: String,
     pub to: String,
     pub amount: u128,
+}
+
+pub struct Key {
+    pub private: PrivateKey,
+    pub public: PublicKey,
 }
 
 impl Block {
@@ -52,6 +60,17 @@ impl Blockchain {
             block.transactions.push(txn);
         }
         self.blocks.push(block);
+    }
+}
+
+impl Key {
+    pub fn new() -> Key {
+        let key = bls_signatures::PrivateKey::generate(&mut thread_rng());
+
+        Key {
+            private: key,
+            public: key.public_key(),
+        }
     }
 }
 
