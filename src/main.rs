@@ -1,32 +1,29 @@
-use bls_signatures;
+use bls_signatures::{self, Serialize};
 use chain_utils::{Key, Transaction};
-use rand::{thread_rng, CryptoRng, RngCore};
 mod chain_utils;
 fn main() {
-    let mut chain = chain_utils::Blockchain::new();
-    let txn = Transaction::new("Caleb".to_string(), "Claire".to_string(), 100);
-    txn.spend(&mut chain);
-
-    println!("{:?}", chain.pending_transactions);
-    println!("{:?}", chain.blocks);
-
-    chain.create_block();
-
-    println!("{:?}", chain.pending_transactions);
-    println!("{:?}", chain.blocks);
-
-    // //should fail
-    // let txn = Transaction::new("Caleb".to_string(), "Claire".to_string(), 100);
-    // txn.spend(&mut chain);
-    // chain.create_block();
-
-    let txn = Transaction::new("Claire".to_string(), "Caleb".to_string(), 50);
-    txn.spend(&mut chain);
-    chain.create_block();
-    println!("{:?}", chain.pending_transactions);
-    println!("{:?}", chain.blocks);
-    println!("{:?}", chain.accounts);
-
     let key = Key::new();
-    println!("{:?} {:?}", key.private, key.public);
+    println!("{:?} public key: {:?}", key.private, key.public);
+    println!("Your address is {}", key.address);
+    //println!("Your public bytes are {:?}", key.public.as_bytes());
+    //println!("Your address is {} characters long", key.address.len());
+
+    let mut chain = chain_utils::Blockchain::new();
+
+    //hex representation of public key
+    let from = hex::encode(key.public.as_bytes());
+    let txn = Transaction::new(from, "Claire".to_string(), 100, &key);
+
+    //test a fake txn:
+    //let key2 = Key::new();
+    //let txn = Transaction::new(from, "Claire".to_string(), 100, &key2);
+
+    txn.spend(&mut chain);
+
+    // println!("{:?}", chain.pending_transactions);
+
+    chain.create_block();
+    // println!("{:?}", chain.blocks);
+
+    //let from_key2 = hex::encode(key.public.as_bytes());
 }
