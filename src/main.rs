@@ -10,19 +10,14 @@ fn main() {
 
     let mut chain = chain_utils::Blockchain::new();
 
-    //hex representation of public key
-    let from = hex::encode(key.public.as_bytes());
-    let hash = sha256::digest(from.as_bytes());
-
     let key2 = Key::new();
-    let addy = sha256::digest(hex::encode(key2.public.as_bytes()).as_bytes());
-    let txn = Transaction::new(hash.clone(), addy.clone(), 100, &key);
+    let txn = Transaction::new(key.address.clone(), key2.address.clone(), 100, &key);
     txn.spend(&mut chain);
     chain.create_block();
 
     println!("\n\naccounts: {:?}\n\n", chain.accounts);
 
-    let txn2 = Transaction::new(addy, hash, 50, &key2);
+    let txn2 = Transaction::new(key2.address.clone(), key.address.clone(), 50, &key2);
     txn2.spend(&mut chain);
     chain.create_block();
 
