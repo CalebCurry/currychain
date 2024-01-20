@@ -20,6 +20,7 @@ pub struct Transaction {
     pub from: String,
     pub signature: String,
     pub to: String,
+    pub sender_public_key: String,
     pub hash: String,
     pub amount: u128,
 }
@@ -58,25 +59,6 @@ impl Blockchain {
                 Err(e) => println!("Something went wrong verifiying txn: {e}"),
             };
 
-            // //update acct balance
-            // match hex::decode(&txn.from) {
-            //     Ok(bytes) => match PublicKey::from_bytes(&bytes) {
-            //         Ok(public_key) => {
-            //             if let Ok(signature_bytes) = hex::decode(&txn.signature) {
-            //                 if let Ok(signature) = Signature::from_bytes(&signature_bytes) {
-            //                     let txn_data = serde_json::to_string(&txn)
-            //                         .expect("Failed to serialize transaction");
-
-            //                     let result = public_key.verify(signature, txn_data.as_bytes());
-            //                     println!("Valid txn?: {result}");
-            //                 }
-            //             }
-            //         }
-            //         Err(_) => eprintln!("broke"),
-            //     },
-            //     Err(_) => eprintln!("Invalid public key"),
-            //     // Err(_) => eprintln!("Invalid hex string"),
-            // }
             //genesis transactions don't subtract
             if self.blocks.len() != 0 {
                 let current_from = self.accounts.entry(txn.from.clone()).or_insert(0);
@@ -116,6 +98,7 @@ impl Transaction {
             amount,
             from,
             to,
+            sender_public_key: String::from(""),
             hash: String::from(""),
             signature: String::from(""),
         };
@@ -123,6 +106,7 @@ impl Transaction {
         let serialized_txn =
             serde_json::to_string(&(&txn.from, &txn.to, amount)).expect("nice try bruh");
         let tx_hash = sha256::digest(&serialized_txn);
+        txn.sender_public_key = hex::encode(key.public.as_bytes());
         txn.signature = hex::encode(key.private.sign(&tx_hash).as_bytes());
         txn.hash = tx_hash;
         txn
@@ -142,7 +126,7 @@ impl Transaction {
     }
 
     pub fn verify(&self) -> Result<bool, String> {
-        let public_key_bytes = hex::decode(&self.from).expect("Error decoding");
+        let public_key_bytes = hex::decode(&self.sender_public_key).expect("Error decoding");
         let public_key = PublicKey::from_bytes(&public_key_bytes).expect("Error public key");
 
         let signature_bytes = hex::decode(&self.signature).expect("error sig bytes");

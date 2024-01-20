@@ -12,17 +12,23 @@ fn main() {
 
     //hex representation of public key
     let from = hex::encode(key.public.as_bytes());
-    let txn = Transaction::new(from, "Claire".to_string(), 100, &key);
+    let hash = sha256::digest(from.as_bytes());
 
-    //test a fake txn:
-    //let key2 = Key::new();
-    //let txn = Transaction::new(from, "Claire".to_string(), 100, &key2);
-
+    let key2 = Key::new();
+    let addy = sha256::digest(hex::encode(key2.public.as_bytes()).as_bytes());
+    let txn = Transaction::new(hash.clone(), addy.clone(), 100, &key);
     txn.spend(&mut chain);
+    chain.create_block();
 
+    println!("\n\naccounts: {:?}\n\n", chain.accounts);
+
+    let txn2 = Transaction::new(addy, hash, 50, &key2);
+    txn2.spend(&mut chain);
+    chain.create_block();
+
+    println!("\n\naccounts: {:?}\n\n", chain.accounts);
     // println!("{:?}", chain.pending_transactions);
 
-    chain.create_block();
     // println!("{:?}", chain.blocks);
 
     //let from_key2 = hex::encode(key.public.as_bytes());
