@@ -75,6 +75,22 @@ impl Blockchain {
     }
 }
 
+fn calculate_checksum(addy: &str) -> String {
+    //calculate a checksum
+    //double hash just cuz
+    //get first 4 bytes
+    //append to addy
+    let addy_hash = sha256::digest(addy);
+    let addy_hash_hash = sha256::digest(addy_hash);
+    let checksum = &addy_hash_hash[0..4];
+    checksum.to_string()
+}
+
+fn calculate_addy_with_checksum(addy_no_checksum: String) -> String {
+    let checksum = calculate_checksum(&addy_no_checksum);
+    format!("{addy_no_checksum}{checksum}")
+}
+
 impl Key {
     pub fn new() -> Key {
         let key = bls_signatures::PrivateKey::generate(&mut thread_rng());
@@ -88,9 +104,25 @@ impl Key {
         let hash2 = hasher.finalize();
 
         let hash2_58 = hash2.to_base58();
-        let addy = format!("curry01{hash2_58}");
+        let addy_no_checksum = format!("curry01{hash2_58}");
 
-        //println!("Address: {}", address);
+        //concatenate the checksum on the address
+        let addy = calculate_addy_with_checksum(addy_no_checksum);
+        println!("Address: {addy}");
+
+        //test to verify this works:
+        //let r_checksum = &addy[addy.len() - 4..];
+
+        //let r_addy_no_checksum = &addy[..addy.len() - 4];
+        //let r_addy_hash = sha256::digest(r_addy_no_checksum);
+        //let r_addy_hash_hash = sha256::digest(&r_addy_hash);
+
+        //let r_calculated_checksum = &r_addy_hash_hash[0..4];
+
+        // println!(
+        //     "~CHECKSUM CHECKS OUT: {}",
+        //     r_calculated_checksum == r_checksum
+        // );
 
         Key {
             private: key,
@@ -145,5 +177,55 @@ impl Transaction {
         println!("result: {result}!!!!!!!!!!!!!!!!!");
 
         Ok(result)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    //invoke tests with cargo test
+    //cargo test --verbose -- --nocapture
+    //allows you to see console logs
+    use super::*;
+
+    #[test]
+    fn test_checksum() {
+        // Generate a key and an address
+        let key = Key::new();
+        let address = key.address;
+
+        // Assume the last 4 characters are the checksum
+        let checksum_part = &address[address.len() - 4..];
+
+        // Recalculate the checksum
+        let address_without_checksum = &address[..address.len() - 4];
+        let recalculated_checksum = calculate_checksum(address_without_checksum);
+
+        // Check if the original checksum matches the recalculated checksum
+        assert_eq!(
+            checksum_part, recalculated_checksum,
+            "Checksum does not match!"
+        );
+    }
+    #[test]
+    fn test_altered_address_checksum() {
+        // Generate a key and an address
+        let key = Key::new();
+        let address = key.address;
+
+        // Recalculate the checksum
+        let addy_no_checksum_unchanged = &address[..address.len() - 4].to_string();
+
+        // Assume the last 4 characters are the checksum
+        let checksum = calculate_checksum(addy_no_checksum_unchanged);
+
+        let mut chars: Vec<char> = addy_no_checksum_unchanged.chars().collect();
+        chars[5] = 'c';
+        let addy_no_checksum: String = chars.into_iter().collect();
+
+        let checksum2 = calculate_checksum(&addy_no_checksum);
+
+        println!("Correct hash: {checksum}, calculated hash from modified addy: {checksum2}");
+
+        assert_ne!(checksum, checksum2, "Checksums with different addys match!");
     }
 }
