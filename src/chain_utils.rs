@@ -1,6 +1,7 @@
 use base58::ToBase58;
 use bls_signatures::{PrivateKey, PublicKey, Serialize, Signature};
 use rand::thread_rng;
+use ripemd::{Digest, Ripemd160};
 use serde;
 use sha256;
 use std::collections::HashMap;
@@ -79,15 +80,22 @@ impl Key {
         let key = bls_signatures::PrivateKey::generate(&mut thread_rng());
 
         //addy
+        //sha256 -> ripemd160 -> base58 -> prepend -> checksum tbd?
         let hash = sha256::digest(key.public_key().as_bytes());
-        let address = hash.into_bytes().to_base58();
+
+        let mut hasher = Ripemd160::new();
+        hasher.update(hash);
+        let hash2 = hasher.finalize();
+
+        let hash2_58 = hash2.to_base58();
+        let addy = format!("curry01{hash2_58}");
 
         //println!("Address: {}", address);
 
         Key {
             private: key,
             public: key.public_key(),
-            address: address,
+            address: addy,
         }
     }
 }
