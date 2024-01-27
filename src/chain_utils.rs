@@ -16,7 +16,7 @@ pub struct Blockchain {
 pub struct Block {
     pub transactions: Vec<Transaction>,
 }
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Transaction {
     pub from: String,
     pub signature: String,
