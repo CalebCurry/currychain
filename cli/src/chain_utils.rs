@@ -1,10 +1,12 @@
 use base58::ToBase58;
 use bls_signatures::{PrivateKey, PublicKey, Serialize, Signature};
+use hex;
+use num_bigint::{BigInt, Sign};
 use rand::thread_rng;
 use ripemd::{Digest, Ripemd160};
 use serde;
 use sha256;
-use std::collections::HashMap;
+use std::{collections::HashMap, num::ParseIntError};
 
 #[derive(Debug)]
 pub struct Blockchain {
@@ -91,10 +93,35 @@ fn calculate_addy_with_checksum(addy_no_checksum: String) -> String {
     format!("{addy_no_checksum}{checksum}")
 }
 
-impl Key {
-    pub fn new() -> Key {
-        let key = bls_signatures::PrivateKey::generate(&mut thread_rng());
+// pub fn hex_to_decimal(hex: &str) -> Result<String, ParseIntError> {
+//     // Remove the '0x' prefix if present
+//     let hex = if hex.starts_with("0x") {
+//         &hex[2..]
+//     } else {
+//         hex
+//     };
 
+//     // Convert hex to BigInt
+//     match BigInt::from_str_radix(hex, 16) {
+//         Ok(decimal) => Ok(decimal.to_string()),
+//         Err(e) => Err(e),
+//     }
+// }
+
+impl Key {
+    pub fn from_str(source: &str) -> Key {
+        let hex_no_prefix = source.trim_start_matches("0x");
+        let private = bls_signatures::PrivateKey::from_bytes(
+            hex::decode(hex_no_prefix).expect("decode error").as_slice(),
+        );
+        Self::generate_address(private.expect("bad input"))
+    }
+
+    pub fn new() -> Key {
+        let private = bls_signatures::PrivateKey::generate(&mut thread_rng());
+        Self::generate_address(private)
+    }
+    fn generate_address(key: bls_signatures::PrivateKey) -> Key {
         //addy
         //sha256 -> ripemd160 -> base58 -> prepend -> checksum tbd?
         let hash = sha256::digest(key.public_key().as_bytes());
@@ -149,6 +176,7 @@ impl Transaction {
         txn.sender_public_key = hex::encode(key.public.as_bytes());
         txn.signature = hex::encode(key.private.sign(&tx_hash).as_bytes());
         txn.hash = tx_hash;
+        println!("\n\nCrafting transaction: {:?}\n\n", txn);
         txn
     }
     pub fn spend(self, blockchain: &mut Blockchain) {

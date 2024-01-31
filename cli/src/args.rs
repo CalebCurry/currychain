@@ -25,4 +25,15 @@ pub enum AccountSubcommand {
     ///Generate a new keypair
     New,
     List,
+    Send(SendArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct SendArgs {
+    #[clap(short, long)]
+    pub amount: u128,
+    #[clap(short, long)]
+    pub to: String,
+    #[clap(short, long)]
+    pub privateKey: String,
 }

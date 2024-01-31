@@ -8,6 +8,6 @@ use clap::{parser, Parser};
 
 fn main() {
     let args = Sub::parse();
-    println!("{args:?}");
+    println!("args: {args:?}");
     handle_command(args.category);
 }
