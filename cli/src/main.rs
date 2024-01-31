@@ -6,8 +6,9 @@ use crate::{args::AccountSubcommand, handlers::handle_command};
 use args::Sub;
 use clap::{parser, Parser};
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args = Sub::parse();
     println!("args: {args:?}");
-    handle_command(args.category);
+    handle_command(args.category).await;
 }
