@@ -1,3 +1,13 @@
+mod args;
+mod chain_utils;
+mod handlers;
+
+use crate::{args::AccountSubcommand, handlers::handle_command};
+use args::Sub;
+use clap::{parser, Parser};
+
 fn main() {
-    println!("Hello, world!");
+    let args = Sub::parse();
+    println!("{args:?}");
+    handle_command(args.category);
 }

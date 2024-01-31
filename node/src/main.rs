@@ -6,9 +6,9 @@ use serde;
 pub mod chain_utils;
 use chain_utils::{Key, Transaction};
 use tokio::{
-    io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader, WriteHalf},
+    io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader},
     net::{TcpListener, TcpStream},
-    sync::broadcast::{self, Receiver, Sender},
+    sync::broadcast::{self},
 };
 
 #[tokio::main]
