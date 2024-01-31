@@ -24,7 +24,9 @@ pub struct AccountCommand {
 pub enum AccountSubcommand {
     ///Generate a new keypair
     New,
+    ///list keys
     List,
+    ///Send curry
     Send(SendArgs),
 }
 
